@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
 
 interface Props {
@@ -19,6 +19,8 @@ export default function LectureView({
   onBack,
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
+  const [playbackSpeed, setPlaybackSpeed] = useState(1);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -30,6 +32,33 @@ export default function LectureView({
     (l) => l.id === selectedLecture?.id
   );
 
+  // Keyboard controls
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (!videoRef.current) return;
+      
+      const v = videoRef.current;
+      if (e.code === 'Space') {
+        e.preventDefault();
+        v.paused ? v.play() : v.pause();
+      } else if (e.code === 'ArrowRight') {
+        v.currentTime += 10;
+      } else if (e.code === 'ArrowLeft') {
+        v.currentTime -= 10;
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
+
+  // Update playback speed when state changes
+  useEffect(() => {
+    if (videoRef.current) {
+      videoRef.current.playbackRate = playbackSpeed;
+    }
+  }, [playbackSpeed, currentUrl]);
+
   function goNext() {
     if (currentIndex < chapter.lectures.length - 1) {
       onSelectLecture(chapter.lectures[currentIndex + 1]);
@@ -39,6 +68,12 @@ export default function LectureView({
   function goPrev() {
     if (currentIndex > 0) {
       onSelectLecture(chapter.lectures[currentIndex - 1]);
+    }
+  }
+
+  function seek(seconds: number) {
+    if (videoRef.current) {
+      videoRef.current.currentTime += seconds;
     }
   }
 
@@ -87,35 +122,53 @@ export default function LectureView({
             <h2 className="lecture-main-title">
               {chapter.name} — {selectedLecture?.title ?? ''}
             </h2>
-            <span className="lecture-count-badge">
-              {currentIndex + 1} / {chapter.lectures.length}
-            </span>
+            <div className="quality-selector">
+              {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
+                <button
+                  key={q}
+                  className={`quality-btn ${quality === q ? 'active' : ''} ${
+                    !availableQualities.includes(q) ? 'disabled' : ''
+                  }`}
+                  style={quality === q ? { background: subject.color, borderColor: subject.color } : {}}
+                  disabled={!availableQualities.includes(q)}
+                  onClick={() => setQuality(q)}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="quality-selector">
-            {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
-              <button
-                key={q}
-                className={`quality-btn ${quality === q ? 'active' : ''} ${
-                  !availableQualities.includes(q) ? 'disabled' : ''
-                }`}
-                style={quality === q ? { background: subject.color, borderColor: subject.color } : {}}
-                disabled={!availableQualities.includes(q)}
-                onClick={() => setQuality(q)}
-              >
-                {q}
-              </button>
-            ))}
+          <div className="player-extra-controls">
+            <div className="seek-controls">
+              <button className="control-btn" onClick={() => seek(-10)} title="Back 10s">↺ 10s</button>
+              <button className="control-btn" onClick={() => seek(10)} title="Forward 10s">10s ↻</button>
+            </div>
+            
+            <div className="speed-selector">
+              <span className="speed-label">Speed:</span>
+              {[1, 1.25, 1.5, 1.75, 2].map(s => (
+                <button 
+                  key={s}
+                  className={`speed-btn ${playbackSpeed === s ? 'active' : ''}`}
+                  onClick={() => setPlaybackSpeed(s)}
+                  style={playbackSpeed === s ? { background: subject.color } : {}}
+                >
+                  {s}x
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
         <div className="video-wrapper">
           {currentUrl ? (
             <video
+              ref={videoRef}
               key={currentUrl}
               className="video-player"
               controls
-              autoPlay={false}
+              autoPlay={true}
               src={currentUrl}
             >
               Your browser does not support HTML5 video.
@@ -150,3 +203,4 @@ export default function LectureView({
     </div>
   );
 }
+
