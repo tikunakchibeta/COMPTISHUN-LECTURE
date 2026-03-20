@@ -162,6 +162,11 @@ export default function LectureView({
         </div>
 
         <div className="video-wrapper">
+          {(chapter.name === "Projectile Motion" || chapter.name === "Relative Motion") && (
+            <div className="missing-banner">
+              ⚠️ Warning: Some lectures for this chapter are currently missing.
+            </div>
+          )}
           {currentUrl ? (
             <video
               ref={videoRef}
