@@ -36,7 +36,7 @@ export default function LectureView({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (!videoRef.current) return;
-      
+
       const v = videoRef.current;
       if (e.code === 'Space') {
         e.preventDefault();
@@ -126,9 +126,8 @@ export default function LectureView({
               {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
                 <button
                   key={q}
-                  className={`quality-btn ${quality === q ? 'active' : ''} ${
-                    !availableQualities.includes(q) ? 'disabled' : ''
-                  }`}
+                  className={`quality-btn ${quality === q ? 'active' : ''} ${!availableQualities.includes(q) ? 'disabled' : ''
+                    }`}
                   style={quality === q ? { background: subject.color, borderColor: subject.color } : {}}
                   disabled={!availableQualities.includes(q)}
                   onClick={() => setQuality(q)}
@@ -144,11 +143,11 @@ export default function LectureView({
               <button className="control-btn" onClick={() => seek(-10)} title="Back 10s">↺ 10s</button>
               <button className="control-btn" onClick={() => seek(10)} title="Forward 10s">10s ↻</button>
             </div>
-            
+
             <div className="speed-selector">
               <span className="speed-label">Speed:</span>
               {[1, 1.25, 1.5, 1.75, 2].map(s => (
-                <button 
+                <button
                   key={s}
                   className={`speed-btn ${playbackSpeed === s ? 'active' : ''}`}
                   onClick={() => setPlaybackSpeed(s)}
@@ -164,7 +163,7 @@ export default function LectureView({
         <div className="video-wrapper">
           {(chapter.name === "Projectile Motion" || chapter.name === "Relative Motion") && (
             <div className="missing-banner">
-              ⚠️ Warning: Some lectures for this chapter are currently missing.
+              ⚠️ Warning: Some lectures for this chapter are currently missing, Use previous year lectures.
             </div>
           )}
           {currentUrl ? (
