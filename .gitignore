@@ -1,0 +1,11 @@
+node_modules
+dist
+.replit-artifact
+.qodo
+.vercel
+.env
+*.log
+.DS_Store
+.vscode
+.idea
+.npmrc
