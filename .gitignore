@@ -9,3 +9,5 @@ dist
 .vscode
 .idea
 .npmrc
+
+.vercel
