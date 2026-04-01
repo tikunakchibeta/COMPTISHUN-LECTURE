@@ -8,7 +8,8 @@ interface Props {
 const ICONS: Record<string, string> = {
   physics: '⚛',
   'physical-inorganic-chemistry': '🧪',
-  'organic-chemistry': '🔬',
+  'organic-chemistry': '⌬',
+  mathematics: '⺎',
 };
 
 export default function SubjectSelect({ subjects, onSelect }: Props) {
