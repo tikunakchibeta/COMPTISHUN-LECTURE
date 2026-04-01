@@ -145,7 +145,8 @@ function parseTxt(content: string): Subject[] {
   const subjectMeta: Record<string, { id: string; short: string; color: string }> = {
     'PHYSICS': { id: 'physics', short: 'PHY', color: '#6366f1' },
     'CHEMISTRY (PHYSICAL & INORGANIC)': { id: 'physical-inorganic-chemistry', short: 'P+I CHE', color: '#10b981' },
-    'CHEMISTRY (ORGANIC)': { id: 'organic-chemistry', short: 'ORG CHE', color: '#f59e0b' }
+    'CHEMISTRY (ORGANIC)': { id: 'organic-chemistry', short: 'ORG CHE', color: '#f59e0b' },
+    'MATHEMATICS': { id: 'mathematics', short: 'MATH', color: '#ec4899' }
   };
 
   const finalizeSubject = () => {
