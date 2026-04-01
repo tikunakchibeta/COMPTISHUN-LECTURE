@@ -2686,31 +2686,31 @@ https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%
 CHEMISTRY (ORGANIC)
 ====================
 
---- IUPAC Nomenclature ---
+--- IUPAC Nomenclature ---4
 L1
-https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-6%20%28Stru.%20iso.%29-1750667847005.mp4/output_480.mp4
-https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-6%20%28Stru.%20iso.%29-1750667847005.mp4/output_720.mp4
-https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-6%20%28Stru.%20iso.%29-1750667847005.mp4/output_1080.mp4
-L2
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-1-1750489043386.mp4/output_480.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-1-1750489043386.mp4/output_720.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-1-1750489043386.mp4/output_1080.mp4
-L3
+L2
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20-L-2-1750667802227.mp4/output_480.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20-L-2-1750667802227.mp4/output_720.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20-L-2-1750667802227.mp4/output_1080.mp4
-L4
+L3
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-3-1750488956485.mp4/output_480.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-3-1750488956485.mp4/output_720.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-3-1750488956485.mp4/output_1080.mp4
-L5
+L4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-4-1750489020240.mp4/output_480.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-4-1750489020240.mp4/output_720.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-4-1750489020240.mp4/output_1080.mp4
-L6
+L5
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/5.%20IUPAC%20L-5-1750667852967.mp4/output_480.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/5.%20IUPAC%20L-5-1750667852967.mp4/output_720.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/5.%20IUPAC%20L-5-1750667852967.mp4/output_1080.mp4
+L6
+https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-6%20%28Stru.%20iso.%29-1750667847005.mp4/output_480.mp4
+https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-6%20%28Stru.%20iso.%29-1750667847005.mp4/output_720.mp4
+https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Chemistry/Organic%20Chemistry/IUPAC%20Nomenclature/IUPAC%20L-6%20%28Stru.%20iso.%29-1750667847005.mp4/output_1080.mp4
 
 --- Structural Identification & POC ---
 L1
