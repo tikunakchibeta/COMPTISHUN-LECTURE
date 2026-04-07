@@ -59,6 +59,31 @@ export default function LectureView({
     }
   }, [playbackSpeed, currentUrl]);
 
+  // Handle Resuming Progress
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !selectedLecture) return;
+
+    const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
+    if (savedTime) {
+      const time = parseFloat(savedTime);
+      // Only seek if the time is significant (> 2s) and not at the very end
+      if (time > 2) {
+        video.currentTime = time;
+      }
+    }
+  }, [selectedLecture?.id, currentUrl]);
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current && selectedLecture) {
+      const currentTime = videoRef.current.currentTime;
+      // Don't save if we are at the very beginning or end
+      if (currentTime > 1 && !videoRef.current.ended) {
+        localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
+      }
+    }
+  };
+
   function goNext() {
     if (currentIndex < chapter.lectures.length - 1) {
       onSelectLecture(chapter.lectures[currentIndex + 1]);
@@ -137,26 +162,27 @@ export default function LectureView({
               ))}
             </div>
           </div>
+        </div>
 
-          <div className="player-extra-controls">
-            <div className="seek-controls">
-              <button className="control-btn" onClick={() => seek(-10)} title="Back 10s">↺ 10s</button>
-              <button className="control-btn" onClick={() => seek(10)} title="Forward 10s">10s ↻</button>
-            </div>
+        {/* Second row: seek + speed + quality on mobile */}
+        <div className="player-controls-row" style={{ '--accent': subject.color } as React.CSSProperties}>
+          <div className="seek-controls">
+            <button className="control-btn" onClick={() => seek(-10)} title="Back 10s">↺ 10s</button>
+            <button className="control-btn" onClick={() => seek(10)} title="Forward 10s">10s ↻</button>
+          </div>
 
-            <div className="speed-selector">
-              <span className="speed-label">Speed:</span>
-              {[1, 1.25, 1.5, 1.75, 2].map(s => (
-                <button
-                  key={s}
-                  className={`speed-btn ${playbackSpeed === s ? 'active' : ''}`}
-                  onClick={() => setPlaybackSpeed(s)}
-                  style={playbackSpeed === s ? { background: subject.color } : {}}
-                >
-                  {s}x
-                </button>
-              ))}
-            </div>
+          <div className="speed-selector">
+            <span className="speed-label">Speed</span>
+            {[0.75, 1, 1.25, 1.5, 1.75, 2].map(s => (
+              <button
+                key={s}
+                className={`speed-btn ${playbackSpeed === s ? 'active' : ''}`}
+                onClick={() => setPlaybackSpeed(s)}
+                style={playbackSpeed === s ? { background: subject.color } : {}}
+              >
+                {s}x
+              </button>
+            ))}
           </div>
         </div>
 
@@ -174,6 +200,7 @@ export default function LectureView({
               controls
               autoPlay={true}
               src={currentUrl}
+              onTimeUpdate={handleTimeUpdate}
             >
               Your browser does not support HTML5 video.
             </video>

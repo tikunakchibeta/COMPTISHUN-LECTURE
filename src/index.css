@@ -647,11 +647,16 @@ body::before {
 }
 
 /* ── Player Extra Controls ── */
-.player-extra-controls {
+.player-controls-row {
   display: flex;
   align-items: center;
-  gap: 20px;
-  flex-shrink: 0;
+  justify-content: space-between;
+  padding: 10px 24px;
+  background: var(--glass-bg);
+  border-bottom: 1px solid var(--glass-border);
+  backdrop-filter: blur(var(--glass-blur));
+  gap: 12px;
+  flex-wrap: wrap;
 }
 
 .seek-controls {
@@ -778,9 +783,33 @@ body::before {
   .lecture-top-bar {
     flex-direction: column;
     align-items: flex-start;
+    gap: 12px;
   }
 
   .lecture-main-title {
     font-size: 13px;
+    white-space: normal;
+  }
+
+  .player-controls-row {
+    padding: 10px 16px;
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .speed-selector {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
+  .speed-btn {
+    padding: 4px 8px;
+    font-size: 11px;
+    flex-grow: 1;
+  }
+
+  .control-btn {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }
