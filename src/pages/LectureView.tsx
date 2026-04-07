@@ -39,7 +39,17 @@ export default function LectureView({
 
       const v = videoRef.current;
       if (e.code === 'Space') {
-        e.preventDefault();
+        // Prevent double-trigger!
+        // If the user is focused on a button, spacebar should click the button.
+        // If the user is focused on the video player, HTML5 natively handles the pause/play.
+        if (
+          document.activeElement?.tagName === 'BUTTON' ||
+          document.activeElement === videoRef.current
+        ) {
+          return; 
+        }
+
+        e.preventDefault(); // Stop page from scrolling down
         v.paused ? v.play() : v.pause();
       } else if (e.code === 'ArrowRight') {
         v.currentTime += 10;
