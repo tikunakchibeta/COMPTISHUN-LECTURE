@@ -314,6 +314,10 @@ L6
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Maths/Progression/Progression-L-6-Inequalities-1753435887078.mp4/output_480.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Maths/Progression/Progression-L-6-Inequalities-1753435887078.mp4/output_720.mp4
 https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Maths/Progression/Progression-L-6-Inequalities-1753435887078.mp4/output_1080.mp4
+L7
+https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Maths/Progression/Progression-L-7-Inequality-1753441325293.mp4/output_1080.mp4
+https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Maths/Progression/Progression-L-7-Inequality-1753441325293.mp4/output_480.mp4
+https://storage.googleapis.com/competishun-bucket/Master%20Praveen%20%282025-26%29/Maths/Progression/Progression-L-7-Inequality-1753441325293.mp4/output_720.mp4
 
 --- Matrices & determinant ---
 L1
