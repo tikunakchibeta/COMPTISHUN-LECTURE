@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
-import { Player, ControlBar, PlaybackRateMenuButton, BigPlayButton, ShortcutHelp } from 'video-react';
+import { Player, ControlBar, PlaybackRateMenuButton, BigPlayButton } from 'video-react';
 import "video-react/dist/video-react.css";
 
 interface Props {
@@ -12,6 +12,27 @@ interface Props {
 }
 
 type Quality = '480p' | '720p' | '1080p';
+
+const SEEK_TIME = 10;
+
+function SkipButton({ seconds, playerRef }: { seconds: number; playerRef: React.RefObject<any> }) {
+  const handleClick = () => {
+    if (playerRef.current) {
+      const newTime = playerRef.current.currentTime + seconds;
+      playerRef.current.seek(Math.max(0, Math.min(newTime, playerRef.current.duration || Infinity)));
+    }
+  };
+
+  return (
+    <button
+      className="video-react-control video-react-skip-button"
+      onClick={handleClick}
+      title={`${seconds > 0 ? '+' : ''}${seconds}s`}
+    >
+      {seconds > 0 ? `+${seconds}s` : `${seconds}s`}
+    </button>
+  );
+}
 
 export default function LectureView({
   subject,
@@ -143,6 +164,28 @@ export default function LectureView({
               onTimeUpdate={handleTimeUpdate}
             >
               <ControlBar>
+                <div className="video-react-control-bar-extras">
+                  <button
+                    className="video-react-button skip-btn"
+                    onClick={() => {
+                      if (playerRef.current) {
+                        playerRef.current.seek(Math.max(0, playerRef.current.currentTime - SEEK_TIME));
+                      }
+                    }}
+                  >
+                    -{SEEK_TIME}
+                  </button>
+                  <button
+                    className="video-react-button skip-btn"
+                    onClick={() => {
+                      if (playerRef.current) {
+                        playerRef.current.seek(Math.min(playerRef.current.duration, playerRef.current.currentTime + SEEK_TIME));
+                      }
+                    }}
+                  >
+                    +{SEEK_TIME}
+                  </button>
+                </div>
                 <PlaybackRateMenuButton rates={[0.5, 0.75, 1, 1.25, 1.5, 2]} />
               </ControlBar>
               <BigPlayButton position="center" />
