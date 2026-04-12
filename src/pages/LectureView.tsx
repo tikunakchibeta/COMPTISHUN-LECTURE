@@ -46,7 +46,7 @@ export default function LectureView({
 
     playerRef.current = new Plyr(videoElement, {
       controls: ['play-large', 'play', 'rewind', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
-      settings: ['speed', 'quality'],
+      settings: ['speed'],
       keyboard: { focused: false, global: false },
       tooltips: { controls: true, seek: true },
     });
@@ -70,13 +70,57 @@ export default function LectureView({
       }
     });
 
+    if (playerRef.current && availableQualities.length > 1) {
+      const controls = playerRef.current.elements.controls;
+      if (controls) {
+        const qualityMenu = document.createElement("div");
+        qualityMenu.className = "plyr__controls quality-controls";
+        qualityMenu.innerHTML = `
+          <div class="plyr__control quality-dropdown">
+            <button type="button" class="plyr__control__arrow">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></svg>
+              <span class="quality-label">${quality}</span>
+            </button>
+            <div class="plyr__menu quality-menu">
+              <div class="plyr__menu__container">
+                <div class="plyr__menu__inner">
+                  <div class="plyr__menu__header">
+                    <span class="plyr__menu__title">Quality</span>
+                  </div>
+                  <div class="plyr__menu__content">
+                    ${availableQualities.map(q => `
+                      <button type="button" class="plyr__control quality-option ${q === quality ? 'active' : ''}" data-quality="${q}">
+                        ${q} ${q === quality ? '<span class="check">✓</span>' : ''}
+                      </button>
+                    `).join('')}
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        `;
+
+        const settingsBtn = controls.querySelector('[data-plyr="settings"]');
+        if (settingsBtn && settingsBtn.parentElement) {
+          settingsBtn.parentElement.insertBefore(qualityMenu.firstElementChild!, settingsBtn);
+        }
+
+        qualityMenu.querySelectorAll('.quality-option').forEach(btn => {
+          btn.addEventListener('click', (e) => {
+            const q = (e.currentTarget as HTMLElement).dataset.quality as Quality;
+            setQuality(q);
+          });
+        });
+      }
+    }
+
     return () => {
       if (playerRef.current) {
         playerRef.current.destroy();
         playerRef.current = null;
       }
     };
-  }, [currentUrl, selectedLecture?.id]);
+  }, [currentUrl, selectedLecture?.id, availableQualities, quality]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
