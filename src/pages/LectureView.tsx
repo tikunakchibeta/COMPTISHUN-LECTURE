@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
+import Plyr from "plyr";
+import "plyr/dist/plyr.css";
 
 interface Props {
   subject: Subject;
@@ -19,7 +21,8 @@ export default function LectureView({
   onBack,
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<Plyr | null>(null);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -32,43 +35,71 @@ export default function LectureView({
   );
 
   useEffect(() => {
+    if (!containerRef.current || !currentUrl) return;
+
+    const videoElement = containerRef.current.querySelector("video");
+    if (!videoElement) return;
+
+    if (playerRef.current) {
+      playerRef.current.destroy();
+    }
+
+    playerRef.current = new Plyr(videoElement, {
+      controls: ['play-large', 'play', 'rewind', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
+      settings: ['speed', 'quality'],
+      keyboard: { focused: false, global: false },
+      tooltips: { controls: true, seek: true },
+    });
+
+    playerRef.current.on("ready", () => {
+      const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture?.id}`);
+      if (savedTime && playerRef.current) {
+        const time = parseFloat(savedTime);
+        if (time > 2) {
+          playerRef.current.currentTime = time;
+        }
+      }
+    });
+
+    playerRef.current.on("timeupdate", () => {
+      if (selectedLecture && playerRef.current) {
+        const currentTime = playerRef.current.currentTime;
+        if (currentTime > 1) {
+          localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
+        }
+      }
+    });
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+  }, [currentUrl, selectedLecture?.id]);
+
+  useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!videoRef.current) return;
+      if (!playerRef.current) return;
 
       if (e.code === 'ArrowRight') {
         e.preventDefault();
-        videoRef.current.currentTime += 10;
+        playerRef.current.currentTime = Math.min(
+          playerRef.current.currentTime + 10,
+          playerRef.current.duration
+        );
       } else if (e.code === 'ArrowLeft') {
         e.preventDefault();
-        videoRef.current.currentTime -= 10;
+        playerRef.current.currentTime = Math.max(
+          playerRef.current.currentTime - 10,
+          0
+        );
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !selectedLecture) return;
-
-    const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
-    if (savedTime) {
-      const time = parseFloat(savedTime);
-      if (time > 2) {
-        video.currentTime = time;
-      }
-    }
-  }, [selectedLecture?.id, currentUrl]);
-
-  const handleTimeUpdate = () => {
-    if (videoRef.current && selectedLecture) {
-      const currentTime = videoRef.current.currentTime;
-      if (currentTime > 1 && !videoRef.current.ended) {
-        localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
-      }
-    }
-  };
 
   function goNext() {
     if (currentIndex < chapter.lectures.length - 1) {
@@ -151,15 +182,14 @@ export default function LectureView({
             </div>
           )}
           {currentUrl ? (
-            <video
-              ref={videoRef}
-              key={currentUrl}
-              className="video-player"
-              controls
-              autoPlay
-              src={currentUrl}
-              onTimeUpdate={handleTimeUpdate}
-            />
+            <div ref={containerRef} className="plyr-container">
+              <video
+                key={currentUrl}
+                className="video-player"
+                playsInline
+                src={currentUrl}
+              />
+            </div>
           ) : (
             <div className="no-video">No video available</div>
           )}
