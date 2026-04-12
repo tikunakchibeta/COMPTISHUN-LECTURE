@@ -1,7 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
-import { Player, ControlBar, PlaybackRateMenuButton, BigPlayButton } from 'video-react';
-import "video-react/dist/video-react.css";
+import Plyr from "plyr";
+import "plyr/dist/plyr.css";
 
 interface Props {
   subject: Subject;
@@ -13,27 +13,6 @@ interface Props {
 
 type Quality = '480p' | '720p' | '1080p';
 
-const SEEK_TIME = 10;
-
-function SkipButton({ seconds, playerRef }: { seconds: number; playerRef: React.RefObject<any> }) {
-  const handleClick = () => {
-    if (playerRef.current) {
-      const newTime = playerRef.current.currentTime + seconds;
-      playerRef.current.seek(Math.max(0, Math.min(newTime, playerRef.current.duration || Infinity)));
-    }
-  };
-
-  return (
-    <button
-      className="video-react-control video-react-skip-button"
-      onClick={handleClick}
-      title={`${seconds > 0 ? '+' : ''}${seconds}s`}
-    >
-      {seconds > 0 ? `+${seconds}s` : `${seconds}s`}
-    </button>
-  );
-}
-
 export default function LectureView({
   subject,
   chapter,
@@ -42,7 +21,8 @@ export default function LectureView({
   onBack,
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
-  const playerRef = useRef<any>(null);
+  const containerRef = useRef<HTMLDivElement>(null);
+  const playerRef = useRef<Plyr | null>(null);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -55,25 +35,50 @@ export default function LectureView({
   );
 
   useEffect(() => {
-    if (playerRef.current && selectedLecture) {
-      const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
-      if (savedTime) {
-        const time = parseFloat(savedTime);
-        if (time > 2) {
-          playerRef.current.seek(time);
+    if (!containerRef.current || !currentUrl) return;
+
+    const video = containerRef.current.querySelector("video");
+    if (!video) return;
+
+    if (playerRef.current) {
+      playerRef.current.destroy();
+    }
+
+    playerRef.current = new Plyr(video, {
+      controls: ['play-large', 'play', 'rewind', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
+      settings: ['speed'],
+      keyboard: { focused: false, global: false },
+      tooltips: { controls: true, seek: true },
+    });
+
+    playerRef.current.on("ready", () => {
+      if (selectedLecture) {
+        const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
+        if (savedTime) {
+          const time = parseFloat(savedTime);
+          if (time > 2) {
+            playerRef.current!.currentTime = time;
+          }
         }
       }
-    }
-  }, [currentUrl, selectedLecture?.id]);
+    });
 
-  const handleTimeUpdate = (state: any) => {
-    if (selectedLecture && state.playbackRate) {
-      const currentTime = state.currentTime;
-      if (currentTime > 1) {
-        localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
+    playerRef.current.on("timeupdate", () => {
+      if (selectedLecture && playerRef.current) {
+        const currentTime = playerRef.current.currentTime;
+        if (currentTime > 1) {
+          localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
+        }
       }
-    }
-  };
+    });
+
+    return () => {
+      if (playerRef.current) {
+        playerRef.current.destroy();
+        playerRef.current = null;
+      }
+    };
+  }, [currentUrl, selectedLecture?.id]);
 
   function goNext() {
     if (currentIndex < chapter.lectures.length - 1) {
@@ -156,40 +161,14 @@ export default function LectureView({
             </div>
           )}
           {currentUrl ? (
-            <Player
-              ref={playerRef}
-              key={currentUrl}
-              src={currentUrl}
-              autoPlay
-              onTimeUpdate={handleTimeUpdate}
-            >
-              <ControlBar>
-                <div className="video-react-control-bar-extras">
-                  <button
-                    className="video-react-button skip-btn"
-                    onClick={() => {
-                      if (playerRef.current) {
-                        playerRef.current.seek(Math.max(0, playerRef.current.currentTime - SEEK_TIME));
-                      }
-                    }}
-                  >
-                    -{SEEK_TIME}
-                  </button>
-                  <button
-                    className="video-react-button skip-btn"
-                    onClick={() => {
-                      if (playerRef.current) {
-                        playerRef.current.seek(Math.min(playerRef.current.duration, playerRef.current.currentTime + SEEK_TIME));
-                      }
-                    }}
-                  >
-                    +{SEEK_TIME}
-                  </button>
-                </div>
-                <PlaybackRateMenuButton rates={[0.5, 0.75, 1, 1.25, 1.5, 2]} />
-              </ControlBar>
-              <BigPlayButton position="center" />
-            </Player>
+            <div ref={containerRef} className="plyr-wrapper">
+              <video
+                key={currentUrl}
+                className="video-player"
+                playsInline
+                src={currentUrl}
+              />
+            </div>
           ) : (
             <div className="no-video">No video available</div>
           )}
