@@ -74,8 +74,6 @@
     "zod": "^3.25.76"
   },
   "dependencies": {
-    "plyr": "^3.8.4",
-    "react-player": "^3.4.0",
-    "react-plyr": "^2.2.0"
+    "react-player": "^3.4.0"
   }
 }

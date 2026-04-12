@@ -20,7 +20,6 @@ export default function LectureView({
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
   const videoRef = useRef<HTMLVideoElement>(null);
-  const [videoKey, setVideoKey] = useState(0);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -33,26 +32,28 @@ export default function LectureView({
   );
 
   useEffect(() => {
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (!videoRef.current) return;
-      if (document.activeElement?.tagName === 'BUTTON') return;
+    const video = videoRef.current;
+    if (!video) return;
 
-      if (e.code === 'ArrowRight') {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') {
         e.preventDefault();
-        videoRef.current.currentTime += 10;
-      } else if (e.code === 'ArrowLeft') {
-        e.preventDefault();
-        videoRef.current.currentTime -= 10;
+        e.stopPropagation();
+        
+        if (e.code === 'ArrowRight') {
+          video.currentTime = Math.min(video.currentTime + 10, video.duration || Infinity);
+        } else {
+          video.currentTime = Math.max(video.currentTime - 10, 0);
+        }
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    video.addEventListener('keydown', handleKeyDown, true);
+    
+    return () => {
+      video.removeEventListener('keydown', handleKeyDown, true);
+    };
   }, []);
-
-  useEffect(() => {
-    setVideoKey(prev => prev + 1);
-  }, [selectedLecture?.id]);
 
   useEffect(() => {
     const video = videoRef.current;
@@ -65,7 +66,7 @@ export default function LectureView({
         video.currentTime = time;
       }
     }
-  }, [videoKey, currentUrl]);
+  }, [currentUrl, selectedLecture?.id]);
 
   const handleTimeUpdate = () => {
     if (videoRef.current && selectedLecture && !videoRef.current.ended) {
@@ -159,7 +160,7 @@ export default function LectureView({
           {currentUrl ? (
             <video
               ref={videoRef}
-              key={`${selectedLecture?.id}-${videoKey}`}
+              key={currentUrl}
               className="video-player"
               controls
               autoPlay
