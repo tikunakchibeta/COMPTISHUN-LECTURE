@@ -1,6 +1,5 @@
 import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
-import ReactPlayer from "react-player";
 
 interface Props {
   subject: Subject;
@@ -20,7 +19,7 @@ export default function LectureView({
   onBack,
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
-  const playerRef = useRef<ReactPlayer>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -32,28 +31,16 @@ export default function LectureView({
     (l) => l.id === selectedLecture?.id
   );
 
-  // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!playerRef.current) return;
+      if (!videoRef.current) return;
 
-      const player = playerRef.current as ReactPlayer;
-      if (e.code === 'Space') {
-        if (
-          document.activeElement?.tagName === 'BUTTON' ||
-          document.activeElement?.closest('.react-player')
-        ) {
-          return;
-        }
-
+      if (e.code === 'ArrowRight') {
         e.preventDefault();
-        playerRef.current.togglePlay();
-      } else if (e.code === 'ArrowRight') {
-        e.preventDefault();
-        player.seekTo(player.getCurrentTime() + 10, 'seconds');
+        videoRef.current.currentTime += 10;
       } else if (e.code === 'ArrowLeft') {
         e.preventDefault();
-        player.seekTo(player.getCurrentTime() - 10, 'seconds');
+        videoRef.current.currentTime -= 10;
       }
     };
 
@@ -61,24 +48,23 @@ export default function LectureView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Handle Resuming Progress
   useEffect(() => {
-    const player = playerRef.current;
-    if (!player || !selectedLecture) return;
+    const video = videoRef.current;
+    if (!video || !selectedLecture) return;
 
     const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
     if (savedTime) {
       const time = parseFloat(savedTime);
       if (time > 2) {
-        player.seekTo(time, 'seconds');
+        video.currentTime = time;
       }
     }
   }, [selectedLecture?.id, currentUrl]);
 
-  const handleProgress = (state: { playedSeconds: number }) => {
-    if (playerRef.current && selectedLecture) {
-      const currentTime = state.playedSeconds;
-      if (currentTime > 1) {
+  const handleTimeUpdate = () => {
+    if (videoRef.current && selectedLecture) {
+      const currentTime = videoRef.current.currentTime;
+      if (currentTime > 1 && !videoRef.current.ended) {
         localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
       }
     }
@@ -165,20 +151,15 @@ export default function LectureView({
             </div>
           )}
           {currentUrl ? (
-            <div className="player-wrapper">
-              <ReactPlayer
-                ref={playerRef}
-                key={currentUrl}
-                className="video-player"
-                url={currentUrl}
-                playing
-                controls
-                onProgress={handleProgress}
-                width="100%"
-                height="100%"
-                config={{ file: { attributes: { controlsList: 'nodownload' } } }}
-              />
-            </div>
+            <video
+              ref={videoRef}
+              key={currentUrl}
+              className="video-player"
+              controls
+              autoPlay
+              src={currentUrl}
+              onTimeUpdate={handleTimeUpdate}
+            />
           ) : (
             <div className="no-video">No video available</div>
           )}
