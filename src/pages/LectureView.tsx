@@ -1,5 +1,7 @@
 import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
+import { Player, ControlBar, PlaybackRateMenuButton, BigPlayButton, ShortcutHelp } from 'video-react';
+import "video-react/dist/video-react.css";
 
 interface Props {
   subject: Subject;
@@ -19,7 +21,7 @@ export default function LectureView({
   onBack,
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<any>(null);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -32,45 +34,20 @@ export default function LectureView({
   );
 
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video) return;
-
-    const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.code === 'ArrowRight' || e.code === 'ArrowLeft') {
-        e.preventDefault();
-        e.stopPropagation();
-        
-        if (e.code === 'ArrowRight') {
-          video.currentTime = Math.min(video.currentTime + 10, video.duration || Infinity);
-        } else {
-          video.currentTime = Math.max(video.currentTime - 10, 0);
+    if (playerRef.current && selectedLecture) {
+      const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
+      if (savedTime) {
+        const time = parseFloat(savedTime);
+        if (time > 2) {
+          playerRef.current.seek(time);
         }
-      }
-    };
-
-    video.addEventListener('keydown', handleKeyDown, true);
-    
-    return () => {
-      video.removeEventListener('keydown', handleKeyDown, true);
-    };
-  }, []);
-
-  useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !selectedLecture) return;
-
-    const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
-    if (savedTime && video.readyState >= 1) {
-      const time = parseFloat(savedTime);
-      if (time > 2) {
-        video.currentTime = time;
       }
     }
   }, [currentUrl, selectedLecture?.id]);
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current && selectedLecture && !videoRef.current.ended) {
-      const currentTime = videoRef.current.currentTime;
+  const handleTimeUpdate = (state: any) => {
+    if (selectedLecture && state.playbackRate) {
+      const currentTime = state.currentTime;
       if (currentTime > 1) {
         localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
       }
@@ -158,15 +135,18 @@ export default function LectureView({
             </div>
           )}
           {currentUrl ? (
-            <video
-              ref={videoRef}
+            <Player
+              ref={playerRef}
               key={currentUrl}
-              className="video-player"
-              controls
-              autoPlay
               src={currentUrl}
+              autoPlay
               onTimeUpdate={handleTimeUpdate}
-            />
+            >
+              <ControlBar>
+                <PlaybackRateMenuButton rates={[0.5, 0.75, 1, 1.25, 1.5, 2]} />
+              </ControlBar>
+              <BigPlayButton position="center" />
+            </Player>
           ) : (
             <div className="no-video">No video available</div>
           )}
