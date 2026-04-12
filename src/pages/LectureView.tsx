@@ -1,4 +1,4 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
 import Plyr from "plyr";
 import "plyr/dist/plyr.css";
@@ -24,75 +24,65 @@ export default function LectureView({
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Plyr | null>(null);
 
-  const videoSources = selectedLecture?.videos.map((v: VideoSet) => ({
-    src: v.url,
-    type: 'video/mp4',
-    size: parseInt(v.quality.replace('p', ''))
-  })) ?? [];
+  const currentUrl = selectedLecture?.videos.find(
+    (v: VideoSet) => v.quality === quality
+  )?.url ?? selectedLecture?.videos[0]?.url ?? null;
 
   const currentIndex = chapter.lectures.findIndex(
     (l) => l.id === selectedLecture?.id
   );
 
-  useEffect(() => {
-    if (!containerRef.current || !selectedLecture || videoSources.length === 0) return;
+  const initPlayer = useCallback(() => {
+    if (!containerRef.current || !currentUrl) return;
 
     const videoElement = containerRef.current.querySelector("video");
     if (!videoElement) return;
 
     if (playerRef.current) {
       playerRef.current.destroy();
+      playerRef.current = null;
     }
 
-    playerRef.current = new Plyr(videoElement, {
+    const player = new Plyr(videoElement, {
       controls: ['play-large', 'play', 'rewind', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
-      settings: ['speed', 'quality'],
+      settings: ['speed'],
       keyboard: { focused: false, global: false },
       tooltips: { controls: true, seek: true },
     });
 
-    playerRef.current.on("ready", () => {
-      if (playerRef.current) {
-        playerRef.current.source = {
-          type: 'video',
-          sources: videoSources
-        };
-        
+    playerRef.current = player;
+
+    player.on("ready", () => {
+      if (selectedLecture) {
         const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
         if (savedTime) {
           const time = parseFloat(savedTime);
           if (time > 2) {
-            playerRef.current.currentTime = time;
+            player.currentTime = time;
           }
         }
       }
     });
 
-    playerRef.current.on("timeupdate", () => {
-      if (selectedLecture && playerRef.current) {
-        const currentTime = playerRef.current.currentTime;
+    player.on("timeupdate", () => {
+      if (selectedLecture) {
+        const currentTime = player.currentTime;
         if (currentTime > 1) {
           localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
         }
       }
     });
+  }, [currentUrl, selectedLecture]);
 
+  useEffect(() => {
+    initPlayer();
     return () => {
       if (playerRef.current) {
         playerRef.current.destroy();
         playerRef.current = null;
       }
     };
-  }, [selectedLecture?.id, videoSources.length]);
-
-  useEffect(() => {
-    if (playerRef.current && videoSources.length > 0) {
-      const qualityIndex = videoSources.findIndex(v => v.size === parseInt(quality.replace('p', '')));
-      if (qualityIndex >= 0) {
-        playerRef.current.quality = qualityIndex;
-      }
-    }
-  }, [quality, videoSources]);
+  }, [initPlayer]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -183,12 +173,15 @@ export default function LectureView({
               ⚠️ Warning: Some lectures for this chapter are currently missing, Use previous year lectures.
             </div>
           )}
-          {videoSources.length > 0 ? (
+          {currentUrl ? (
             <div ref={containerRef} className="plyr-container">
               <video
-                key={selectedLecture?.id}
+                key={`${selectedLecture?.id}-${quality}`}
                 className="video-player"
                 playsInline
+                controls
+                autoPlay
+                src={currentUrl}
               />
             </div>
           ) : (

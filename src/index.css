@@ -544,8 +544,8 @@ body::before {
   font-variant-numeric: tabular-nums;
 }
 
-.quality-selector {
-  flex-shrink: 0;
+.plyr__controls {
+  background: linear-gradient(transparent, rgba(0, 0, 0, 0.8));
 }
 
 .quality-select {
