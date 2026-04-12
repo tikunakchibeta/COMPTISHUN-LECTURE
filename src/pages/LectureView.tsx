@@ -24,18 +24,18 @@ export default function LectureView({
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Plyr | null>(null);
 
-  const currentUrl = selectedLecture?.videos.find(
-    (v: VideoSet) => v.quality === quality
-  )?.url ?? selectedLecture?.videos[0]?.url ?? null;
-
-  const availableQualities = selectedLecture?.videos.map((v: VideoSet) => v.quality) ?? [];
+  const videoSources = selectedLecture?.videos.map((v: VideoSet) => ({
+    src: v.url,
+    type: 'video/mp4',
+    size: parseInt(v.quality.replace('p', ''))
+  })) ?? [];
 
   const currentIndex = chapter.lectures.findIndex(
     (l) => l.id === selectedLecture?.id
   );
 
   useEffect(() => {
-    if (!containerRef.current || !currentUrl) return;
+    if (!containerRef.current || !selectedLecture || videoSources.length === 0) return;
 
     const videoElement = containerRef.current.querySelector("video");
     if (!videoElement) return;
@@ -46,17 +46,24 @@ export default function LectureView({
 
     playerRef.current = new Plyr(videoElement, {
       controls: ['play-large', 'play', 'rewind', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
-      settings: ['speed'],
+      settings: ['speed', 'quality'],
       keyboard: { focused: false, global: false },
       tooltips: { controls: true, seek: true },
     });
 
     playerRef.current.on("ready", () => {
-      const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture?.id}`);
-      if (savedTime && playerRef.current) {
-        const time = parseFloat(savedTime);
-        if (time > 2) {
-          playerRef.current.currentTime = time;
+      if (playerRef.current) {
+        playerRef.current.source = {
+          type: 'video',
+          sources: videoSources
+        };
+        
+        const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
+        if (savedTime) {
+          const time = parseFloat(savedTime);
+          if (time > 2) {
+            playerRef.current.currentTime = time;
+          }
         }
       }
     });
@@ -76,7 +83,16 @@ export default function LectureView({
         playerRef.current = null;
       }
     };
-  }, [currentUrl, selectedLecture?.id]);
+  }, [selectedLecture?.id, videoSources.length]);
+
+  useEffect(() => {
+    if (playerRef.current && videoSources.length > 0) {
+      const qualityIndex = videoSources.findIndex(v => v.size === parseInt(quality.replace('p', '')));
+      if (qualityIndex >= 0) {
+        playerRef.current.quality = qualityIndex;
+      }
+    }
+  }, [quality, videoSources]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -158,22 +174,6 @@ export default function LectureView({
             <h2 className="lecture-main-title">
               {chapter.name} — {selectedLecture?.title ?? ''}
             </h2>
-            {availableQualities.length > 1 && (
-              <div className="quality-selector">
-                <select
-                  className="quality-select"
-                  value={quality}
-                  onChange={(e) => setQuality(e.target.value as Quality)}
-                  style={{ background: subject.color, borderColor: subject.color }}
-                >
-                  {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
-                    <option key={q} value={q} disabled={!availableQualities.includes(q)}>
-                      {q}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
           </div>
         </div>
 
@@ -183,13 +183,12 @@ export default function LectureView({
               ⚠️ Warning: Some lectures for this chapter are currently missing, Use previous year lectures.
             </div>
           )}
-          {currentUrl ? (
+          {videoSources.length > 0 ? (
             <div ref={containerRef} className="plyr-container">
               <video
-                key={currentUrl}
+                key={selectedLecture?.id}
                 className="video-player"
                 playsInline
-                src={currentUrl}
               />
             </div>
           ) : (
