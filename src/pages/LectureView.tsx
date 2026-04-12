@@ -52,8 +52,10 @@ export default function LectureView({
         e.preventDefault(); // Stop page from scrolling down
         v.paused ? v.play() : v.pause();
       } else if (e.code === 'ArrowRight') {
+        e.preventDefault();
         v.currentTime += 10;
       } else if (e.code === 'ArrowLeft') {
+        e.preventDefault();
         v.currentTime -= 10;
       }
     };
