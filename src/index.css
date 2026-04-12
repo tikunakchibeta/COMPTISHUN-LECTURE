@@ -598,6 +598,16 @@ body::before {
   background: #000;
 }
 
+.player-wrapper {
+  width: 100%;
+  height: 100%;
+  max-height: calc(100dvh - 200px);
+}
+
+.player-wrapper > div {
+  height: 100% !important;
+}
+
 .no-video {
   color: var(--text-muted);
   font-size: 15px;

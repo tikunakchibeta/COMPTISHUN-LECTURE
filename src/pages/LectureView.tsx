@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
+import ReactPlayer from "react-player";
 
 interface Props {
   subject: Subject;
@@ -19,8 +20,7 @@ export default function LectureView({
   onBack,
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
-  const [playbackSpeed, setPlaybackSpeed] = useState(1);
-  const videoRef = useRef<HTMLVideoElement>(null);
+  const playerRef = useRef<ReactPlayer>(null);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -35,28 +35,25 @@ export default function LectureView({
   // Keyboard controls
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!videoRef.current) return;
+      if (!playerRef.current) return;
 
-      const v = videoRef.current;
+      const player = playerRef.current as ReactPlayer;
       if (e.code === 'Space') {
-        // Prevent double-trigger!
-        // If the user is focused on a button, spacebar should click the button.
-        // If the user is focused on the video player, HTML5 natively handles the pause/play.
         if (
           document.activeElement?.tagName === 'BUTTON' ||
-          document.activeElement === videoRef.current
+          document.activeElement?.closest('.react-player')
         ) {
-          return; 
+          return;
         }
 
-        e.preventDefault(); // Stop page from scrolling down
-        v.paused ? v.play() : v.pause();
+        e.preventDefault();
+        playerRef.current.togglePlay();
       } else if (e.code === 'ArrowRight') {
         e.preventDefault();
-        v.currentTime += 10;
+        player.seekTo(player.getCurrentTime() + 10, 'seconds');
       } else if (e.code === 'ArrowLeft') {
         e.preventDefault();
-        v.currentTime -= 10;
+        player.seekTo(player.getCurrentTime() - 10, 'seconds');
       }
     };
 
@@ -64,33 +61,24 @@ export default function LectureView({
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
 
-  // Update playback speed when state changes
-  useEffect(() => {
-    if (videoRef.current) {
-      videoRef.current.playbackRate = playbackSpeed;
-    }
-  }, [playbackSpeed, currentUrl]);
-
   // Handle Resuming Progress
   useEffect(() => {
-    const video = videoRef.current;
-    if (!video || !selectedLecture) return;
+    const player = playerRef.current;
+    if (!player || !selectedLecture) return;
 
     const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
     if (savedTime) {
       const time = parseFloat(savedTime);
-      // Only seek if the time is significant (> 2s) and not at the very end
       if (time > 2) {
-        video.currentTime = time;
+        player.seekTo(time, 'seconds');
       }
     }
   }, [selectedLecture?.id, currentUrl]);
 
-  const handleTimeUpdate = () => {
-    if (videoRef.current && selectedLecture) {
-      const currentTime = videoRef.current.currentTime;
-      // Don't save if we are at the very beginning or end
-      if (currentTime > 1 && !videoRef.current.ended) {
+  const handleProgress = (state: { playedSeconds: number }) => {
+    if (playerRef.current && selectedLecture) {
+      const currentTime = state.playedSeconds;
+      if (currentTime > 1) {
         localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
       }
     }
@@ -105,12 +93,6 @@ export default function LectureView({
   function goPrev() {
     if (currentIndex > 0) {
       onSelectLecture(chapter.lectures[currentIndex - 1]);
-    }
-  }
-
-  function seek(seconds: number) {
-    if (videoRef.current) {
-      videoRef.current.currentTime += seconds;
     }
   }
 
@@ -176,28 +158,6 @@ export default function LectureView({
           </div>
         </div>
 
-        {/* Second row: seek + speed + quality on mobile */}
-        <div className="player-controls-row" style={{ '--accent': subject.color } as React.CSSProperties}>
-          <div className="seek-controls">
-            <button className="control-btn" onClick={() => seek(-10)} title="Back 10s">↺ 10s</button>
-            <button className="control-btn" onClick={() => seek(10)} title="Forward 10s">10s ↻</button>
-          </div>
-
-          <div className="speed-selector">
-            <span className="speed-label">Speed</span>
-            {[0.75, 1, 1.25, 1.5, 1.75, 2].map(s => (
-              <button
-                key={s}
-                className={`speed-btn ${playbackSpeed === s ? 'active' : ''}`}
-                onClick={() => setPlaybackSpeed(s)}
-                style={playbackSpeed === s ? { background: subject.color } : {}}
-              >
-                {s}x
-              </button>
-            ))}
-          </div>
-        </div>
-
         <div className="video-wrapper">
           {(chapter.name === "Projectile Motion" || chapter.name === "Relative Motion") && (
             <div className="missing-banner">
@@ -205,17 +165,20 @@ export default function LectureView({
             </div>
           )}
           {currentUrl ? (
-            <video
-              ref={videoRef}
-              key={currentUrl}
-              className="video-player"
-              controls
-              autoPlay={true}
-              src={currentUrl}
-              onTimeUpdate={handleTimeUpdate}
-            >
-              Your browser does not support HTML5 video.
-            </video>
+            <div className="player-wrapper">
+              <ReactPlayer
+                ref={playerRef}
+                key={currentUrl}
+                className="video-player"
+                url={currentUrl}
+                playing
+                controls
+                onProgress={handleProgress}
+                width="100%"
+                height="100%"
+                config={{ file: { attributes: { controlsList: 'nodownload' } } }}
+              />
+            </div>
           ) : (
             <div className="no-video">No video available</div>
           )}
