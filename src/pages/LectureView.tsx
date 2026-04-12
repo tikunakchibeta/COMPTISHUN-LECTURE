@@ -1,7 +1,5 @@
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
-import Plyr from "plyr";
-import "plyr/dist/plyr.css";
 
 interface Props {
   subject: Subject;
@@ -21,91 +19,62 @@ export default function LectureView({
   onBack,
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
-  const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<Plyr | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const [videoKey, setVideoKey] = useState(0);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
   )?.url ?? selectedLecture?.videos[0]?.url ?? null;
 
+  const availableQualities = selectedLecture?.videos.map((v: VideoSet) => v.quality) ?? [];
+
   const currentIndex = chapter.lectures.findIndex(
     (l) => l.id === selectedLecture?.id
   );
 
-  const initPlayer = useCallback(() => {
-    if (!containerRef.current || !currentUrl) return;
-
-    const videoElement = containerRef.current.querySelector("video");
-    if (!videoElement) return;
-
-    if (playerRef.current) {
-      playerRef.current.destroy();
-      playerRef.current = null;
-    }
-
-    const player = new Plyr(videoElement, {
-      controls: ['play-large', 'play', 'rewind', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
-      settings: ['speed'],
-      keyboard: { focused: false, global: false },
-      tooltips: { controls: true, seek: true },
-    });
-
-    playerRef.current = player;
-
-    player.on("ready", () => {
-      if (selectedLecture) {
-        const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
-        if (savedTime) {
-          const time = parseFloat(savedTime);
-          if (time > 2) {
-            player.currentTime = time;
-          }
-        }
-      }
-    });
-
-    player.on("timeupdate", () => {
-      if (selectedLecture) {
-        const currentTime = player.currentTime;
-        if (currentTime > 1) {
-          localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
-        }
-      }
-    });
-  }, [currentUrl, selectedLecture]);
-
-  useEffect(() => {
-    initPlayer();
-    return () => {
-      if (playerRef.current) {
-        playerRef.current.destroy();
-        playerRef.current = null;
-      }
-    };
-  }, [initPlayer]);
-
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (!playerRef.current) return;
+      if (!videoRef.current) return;
+      if (document.activeElement?.tagName === 'BUTTON') return;
 
       if (e.code === 'ArrowRight') {
         e.preventDefault();
-        playerRef.current.currentTime = Math.min(
-          playerRef.current.currentTime + 10,
-          playerRef.current.duration
-        );
+        videoRef.current.currentTime += 10;
       } else if (e.code === 'ArrowLeft') {
         e.preventDefault();
-        playerRef.current.currentTime = Math.max(
-          playerRef.current.currentTime - 10,
-          0
-        );
+        videoRef.current.currentTime -= 10;
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  useEffect(() => {
+    setVideoKey(prev => prev + 1);
+  }, [selectedLecture?.id]);
+
+  useEffect(() => {
+    const video = videoRef.current;
+    if (!video || !selectedLecture) return;
+
+    const savedTime = localStorage.getItem(`lecture-progress-${selectedLecture.id}`);
+    if (savedTime && video.readyState >= 1) {
+      const time = parseFloat(savedTime);
+      if (time > 2) {
+        video.currentTime = time;
+      }
+    }
+  }, [videoKey, currentUrl]);
+
+  const handleTimeUpdate = () => {
+    if (videoRef.current && selectedLecture && !videoRef.current.ended) {
+      const currentTime = videoRef.current.currentTime;
+      if (currentTime > 1) {
+        localStorage.setItem(`lecture-progress-${selectedLecture.id}`, currentTime.toString());
+      }
+    }
+  };
 
   function goNext() {
     if (currentIndex < chapter.lectures.length - 1) {
@@ -164,6 +133,20 @@ export default function LectureView({
             <h2 className="lecture-main-title">
               {chapter.name} — {selectedLecture?.title ?? ''}
             </h2>
+            <div className="quality-selector">
+              {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
+                <button
+                  key={q}
+                  className={`quality-btn ${quality === q ? 'active' : ''} ${!availableQualities.includes(q) ? 'disabled' : ''
+                    }`}
+                  style={quality === q ? { background: subject.color, borderColor: subject.color } : {}}
+                  disabled={!availableQualities.includes(q)}
+                  onClick={() => setQuality(q)}
+                >
+                  {q}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
 
@@ -174,16 +157,15 @@ export default function LectureView({
             </div>
           )}
           {currentUrl ? (
-            <div ref={containerRef} className="plyr-container">
-              <video
-                key={`${selectedLecture?.id}-${quality}`}
-                className="video-player"
-                playsInline
-                controls
-                autoPlay
-                src={currentUrl}
-              />
-            </div>
+            <video
+              ref={videoRef}
+              key={`${selectedLecture?.id}-${videoKey}`}
+              className="video-player"
+              controls
+              autoPlay
+              src={currentUrl}
+              onTimeUpdate={handleTimeUpdate}
+            />
           ) : (
             <div className="no-video">No video available</div>
           )}
