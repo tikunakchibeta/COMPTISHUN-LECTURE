@@ -17,7 +17,7 @@ export default function SubjectSelect({ subjects, onSelect }: Props) {
     <div className="page-center">
       <div className="hero-header">
         <div className="hero-badge">Master Praveen 2025-26</div>
-        <h1 className="hero-title">Lecture Navigator</h1>
+        <h1 className="hero-title">PRAVEEN BATCH</h1>
         <p className="hero-subtitle">
           Select a subject to begin &bull; Crafted by <a href="https://t.me/Chetan_Baba" target="_blank" rel="noopener noreferrer" style={{ color: '#a5b4fc', textDecoration: 'none', fontWeight: 600 }}>@Chetan_Baba</a>
         </p>
