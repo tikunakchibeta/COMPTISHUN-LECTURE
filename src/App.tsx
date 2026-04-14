@@ -55,6 +55,15 @@ function App() {
           onBack={handleBack}
         />
       )}
+      <footer className="footer-credit">
+        <div className="credit-content">
+          <span className="credit-text">Crafted with precision by</span>
+          <a href="https://t.me/Chetan_Baba" target="_blank" rel="noopener noreferrer" className="credit-link">
+            <span className="telegram-icon">✈</span>
+            @Chetan_Baba
+          </a>
+        </div>
+      </footer>
     </div>
   );
 }
