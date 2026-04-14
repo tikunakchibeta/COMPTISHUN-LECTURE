@@ -125,6 +125,11 @@ export default function LectureView({
               )}
             </button>
           ))}
+        <div className="sidebar-credit">
+          <div className="sidebar-credit-text">Crafted by</div>
+          <a href="https://t.me/Chetan_Baba" target="_blank" rel="noopener noreferrer" className="sidebar-credit-link">
+            @Chetan_Baba
+          </a>
         </div>
       </div>
 
