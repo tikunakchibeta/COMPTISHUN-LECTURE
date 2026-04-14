@@ -161,9 +161,8 @@ export default function LectureView({
             </div>
           )}
           {currentUrl ? (
-            <div ref={containerRef} className="plyr-wrapper">
+            <div key={currentUrl} ref={containerRef} className="plyr-wrapper">
               <video
-                key={currentUrl}
                 className="video-player"
                 playsInline
                 src={currentUrl}
