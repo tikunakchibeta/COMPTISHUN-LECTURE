@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Analytics } from "@vercel/analytics/react";
 import { subjects, Subject, Chapter, Lecture } from "@/data/lectures";
 import SubjectSelect from "@/pages/SubjectSelect";
 import ChapterSelect from "@/pages/ChapterSelect";
@@ -64,6 +65,7 @@ function App() {
           </a>
         </div>
       </footer>
+      <Analytics />
     </div>
   );
 }
