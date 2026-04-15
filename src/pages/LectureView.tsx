@@ -23,6 +23,28 @@ export default function LectureView({
   const [quality, setQuality] = useState<Quality>('720p');
   const containerRef = useRef<HTMLDivElement>(null);
   const playerRef = useRef<Plyr | null>(null);
+  const [downloadSizes, setDownloadSizes] = useState<Record<string, string>>({});
+
+  useEffect(() => {
+    if (selectedLecture) {
+      setDownloadSizes({});
+      selectedLecture.videos.forEach(async (v) => {
+        try {
+          const res = await fetch(v.url, { method: 'HEAD' });
+          const len = res.headers.get('content-length');
+          if (len) {
+            const size = parseInt(len, 10);
+            const formatted = size > 1024 * 1024 * 1024 
+              ? (size / (1024 * 1024 * 1024)).toFixed(1) + ' GB'
+              : (size / (1024 * 1024)).toFixed(0) + ' MB';
+            setDownloadSizes(prev => ({ ...prev, [v.quality]: formatted }));
+          }
+        } catch (e) {
+          // Fallback if HEAD fails
+        }
+      });
+    }
+  }, [selectedLecture?.id]);
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -125,6 +147,8 @@ export default function LectureView({
               )}
             </button>
           ))}
+        </div>
+
         <div className="sidebar-credit">
           <div className="sidebar-credit-text">Crafted by</div>
           <a href="https://t.me/Chetan_Baba" target="_blank" rel="noopener noreferrer" className="sidebar-credit-link">
@@ -143,6 +167,7 @@ export default function LectureView({
               {chapter.name} — {selectedLecture?.title ?? ''}
             </h2>
             <div className="quality-selector">
+              <span className="quality-label">Player:</span>
               {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
                 <button
                   key={q}
@@ -154,6 +179,28 @@ export default function LectureView({
                 >
                   {q}
                 </button>
+              ))}
+            </div>
+          </div>
+          <div className="download-section">
+            <span className="download-label">Downloads:</span>
+            <div className="download-options">
+              {selectedLecture?.videos.map((v) => (
+                <a
+                  key={v.quality}
+                  href={v.url}
+                  download
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="download-link"
+                  style={{ '--accent': subject.color } as React.CSSProperties}
+                >
+                  <span className="dl-quality">{v.quality}</span>
+                  {downloadSizes[v.quality] && (
+                    <span className="dl-size">{downloadSizes[v.quality]}</span>
+                  )}
+                  <span className="dl-icon">↓</span>
+                </a>
               ))}
             </div>
           </div>
