@@ -30,8 +30,16 @@ export default function LectureView({
       setDownloadSizes({});
       selectedLecture.videos.forEach(async (v) => {
         try {
-          const res = await fetch(v.url, { method: 'HEAD' });
-          const len = res.headers.get('content-length');
+          // Try HEAD first
+          let res = await fetch(v.url, { method: 'HEAD' });
+          let len = res.headers.get('content-length');
+          
+          // If HEAD fails or returns no length, try a small GET range
+          if (!len) {
+            res = await fetch(v.url, { headers: { 'Range': 'bytes=0-0' } });
+            len = res.headers.get('content-range')?.split('/')?.[1];
+          }
+
           if (len) {
             const size = parseInt(len, 10);
             const formatted = size > 1024 * 1024 * 1024 
@@ -40,11 +48,21 @@ export default function LectureView({
             setDownloadSizes(prev => ({ ...prev, [v.quality]: formatted }));
           }
         } catch (e) {
-          // Fallback if HEAD fails
+          console.warn("Could not fetch size for", v.quality);
         }
       });
     }
   }, [selectedLecture?.id]);
+
+  const triggerDownload = (e: React.MouseEvent, url: string, filename: string) => {
+    // We try to trigger a download. Cross-origin URLs often just navigate.
+    // Providing a clear message for the user if it just opens.
+    const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+    if (!isMobile) {
+      // We can't easily force download of cross-origin videos > 100MB without bucket CORS config
+      // So we just let the default behavior happen but inform the user.
+    }
+  };
 
   const currentUrl = selectedLecture?.videos.find(
     (v: VideoSet) => v.quality === quality
@@ -189,10 +207,12 @@ export default function LectureView({
                 <a
                   key={v.quality}
                   href={v.url}
-                  download
+                  download={`${selectedLecture.title}_${v.quality}.mp4`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="download-link"
+                  title="Right-click and select 'Save link as...' to download"
+                  onClick={(e) => triggerDownload(e, v.url, `${selectedLecture.title}_${v.quality}.mp4`)}
                   style={{ '--accent': subject.color } as React.CSSProperties}
                 >
                   <span className="dl-quality">{v.quality}</span>
@@ -203,6 +223,7 @@ export default function LectureView({
                 </a>
               ))}
             </div>
+            <span className="dl-hint">(Tip: If video opens, click "3 dots" ⋮ → Download)</span>
           </div>
         </div>
 

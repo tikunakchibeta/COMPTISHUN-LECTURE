@@ -587,6 +587,13 @@ body::before {
   color: var(--accent, #6366f1);
 }
 
+.dl-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  font-style: italic;
+  margin-left: 4px;
+}
+
 .lecture-main-title {
   font-size: 15px;
   font-weight: 600;
