@@ -1,6 +1,6 @@
 import { useState, useRef, useEffect } from "react";
 import { Subject, Chapter, Lecture, VideoSet } from "@/data/lectures";
-import Plyr from "plyr";
+import * as Plyr from "plyr";
 import "plyr/dist/plyr.css";
 
 interface Props {
@@ -22,7 +22,7 @@ export default function LectureView({
 }: Props) {
   const [quality, setQuality] = useState<Quality>('720p');
   const containerRef = useRef<HTMLDivElement>(null);
-  const playerRef = useRef<Plyr | null>(null);
+  const playerRef = useRef<Plyr.default | null>(null);
   const [downloadSizes, setDownloadSizes] = useState<Record<string, string>>({});
 
   useEffect(() => {
@@ -37,7 +37,7 @@ export default function LectureView({
           // If HEAD fails or returns no length, try a small GET range
           if (!len) {
             res = await fetch(v.url, { headers: { 'Range': 'bytes=0-0' } });
-            len = res.headers.get('content-range')?.split('/')?.[1];
+            len = res.headers.get('content-range')?.split('/')?.[1] ?? null;
           }
 
           if (len) {
@@ -84,7 +84,7 @@ export default function LectureView({
       playerRef.current.destroy();
     }
 
-    playerRef.current = new Plyr(video, {
+    playerRef.current = new Plyr.default(video, {
       controls: ['play-large', 'play', 'rewind', 'fast-forward', 'progress', 'current-time', 'duration', 'mute', 'volume', 'captions', 'settings', 'fullscreen'],
       settings: ['speed'],
       keyboard: { focused: false, global: false },
@@ -181,23 +181,25 @@ export default function LectureView({
           style={{ '--accent': subject.color } as React.CSSProperties}
         >
           <div className="lecture-title-row">
-            <h2 className="lecture-main-title">
+            <h2 className="lecture-main-title max-w-[200px] md:max-w-none truncate">
               {chapter.name} — {selectedLecture?.title ?? ''}
             </h2>
-            <div className="quality-selector">
-              <span className="quality-label">Player:</span>
-              {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
-                <button
-                  key={q}
-                  className={`quality-btn ${quality === q ? 'active' : ''} ${!availableQualities.includes(q) ? 'disabled' : ''
-                    }`}
-                  style={quality === q ? { background: subject.color, borderColor: subject.color } : {}}
-                  disabled={!availableQualities.includes(q)}
-                  onClick={() => setQuality(q)}
-                >
-                  {q}
-                </button>
-              ))}
+            <div className="quality-selector flex-wrap md:flex-nowrap gap-2">
+              <span className="quality-label hidden md:inline">Player:</span>
+              <div className="quality-options">
+                {(['480p', '720p', '1080p'] as Quality[]).map((q) => (
+                  <button
+                    key={q}
+                    className={`quality-btn text-[10px] md:text-xs ${quality === q ? 'active' : ''} ${!availableQualities.includes(q) ? 'disabled' : ''
+                      }`}
+                    style={quality === q ? { background: subject.color, borderColor: subject.color } : {}}
+                    disabled={!availableQualities.includes(q)}
+                    onClick={() => setQuality(q)}
+                  >
+                    {q}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
           <div className="download-section">
